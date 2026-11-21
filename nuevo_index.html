@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Citas de Medicina General · Hospital Escuela (prototipo)</title>
+<meta name="description" content="Prototipo navegable con datos ficticios. DIA 231 Tendencias Tecnológicas, Actividad 12, Equipo 3.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14202E; --muted:#44546A; --blue:#0B4F8A; --blue-dark:#083B68;
+  --gold:#F5C518; --gold-soft:#FFF3C4; --bg:#F2F5F8; --line:#B9C6D4;
+  --ok:#0F6B3A; --ok-bg:#E3F4EA; --warn:#7A4B00; --warn-bg:#FFF1CC;
+  --bad:#A4161A; --bad-bg:#FDE8E8; --info-bg:#E6F0FA;
+}
+*{box-sizing:border-box}
+html{font-size:112.5%;-webkit-text-size-adjust:100%}
+html.big{font-size:131.25%}
+body{margin:0;background:#DCE3EB;color:var(--ink);font-family:'Atkinson Hyperlegible',system-ui,'Segoe UI',Arial,sans-serif;line-height:1.5}
+.skip{position:absolute;left:-999px;top:0;background:#fff;color:var(--blue);padding:.6rem 1rem;z-index:50;font-weight:700}
+.skip:focus{left:8px;top:8px}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+.layout{display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:center;align-items:flex-start}
+.app{width:100%;max-width:31rem;background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+@media(min-width:700px){
+  .layout{padding:1.5rem}
+  .app{min-height:44rem;border:2px solid var(--ink);border-radius:18px;overflow:hidden}
+}
+
+.strip{background:var(--gold);color:#2B2100;font-size:.875rem;font-weight:700;padding:.35rem 1rem}
+.hdr{background:var(--blue);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.9rem 1rem}
+.hname{margin:0;font-size:1.25rem;font-weight:700;line-height:1.2}
+.hsub{margin:0;font-size:.9rem}
+.ghost{background:transparent;color:#fff;border:2px solid #fff;border-radius:10px;padding:.4rem .7rem;font:inherit;font-size:.9rem;font-weight:700;min-height:2.75rem;cursor:pointer}
+.ghost[aria-pressed=true]{background:#fff;color:var(--blue)}
+.ghost:focus-visible{outline-color:#fff}
+
+.screen{flex:1;padding:1rem 1rem 1.5rem}
+h1{font-size:1.65rem;line-height:1.2;margin:.25rem 0 .6rem}
+h1:focus{outline:none}
+h2{font-size:1.2rem;margin:1.25rem 0 .5rem}
+p{margin:0 0 .8rem}
+.lead{font-size:1.05rem;margin-bottom:1.25rem}
+
+.back{display:inline-flex;align-items:center;gap:.2rem;background:none;border:0;color:var(--blue);font:inherit;font-weight:700;padding:.4rem .6rem .4rem 0;min-height:2.75rem;cursor:pointer;text-decoration:underline}
+.prog p{margin:.25rem 0 .35rem;font-size:.95rem;font-weight:700;color:var(--muted)}
+.bar{display:flex;gap:.3rem;margin-bottom:1rem}
+.bar i{flex:1;height:.5rem;border-radius:99px;background:#C9D5E2}
+.bar i.on{background:var(--blue)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;min-height:3.25rem;padding:.6rem 1rem;border-radius:10px;border:2px solid var(--blue);font:inherit;font-size:1.05rem;font-weight:700;cursor:pointer;text-align:center;margin-top:.7rem}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.primary:hover{background:var(--blue-dark)}
+.btn.secondary{background:#fff;color:var(--blue)}
+.btn.quiet{background:none;border-color:transparent;color:var(--blue);text-decoration:underline}
+
+.option{display:flex;align-items:center;gap:.9rem;width:100%;text-align:left;background:#fff;border:2px solid var(--blue);border-radius:12px;padding:1rem;min-height:4.5rem;color:var(--ink);font:inherit;margin-bottom:.8rem;cursor:pointer}
+.option:hover{background:var(--info-bg)}
+.option .ic{color:var(--blue);flex:none}
+.option span{flex:1}
+.option strong{display:block;font-size:1.15rem;line-height:1.25}
+.option small{display:block;color:var(--muted);font-size:.95rem;margin-top:.15rem}
+
+.note{display:flex;gap:.5rem;color:var(--muted);margin-top:1rem}
+.ic{flex:none}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+label,.lbl{display:block;font-weight:700;margin:1rem 0 .3rem;padding:0}
+.hint{color:var(--muted);font-size:.95rem;margin:0 0 .4rem}
+input[type=text],input[type=tel]{width:100%;font:inherit;font-size:1.15rem;padding:.7rem .8rem;border:2px solid #5B6B7F;border-radius:10px;background:#fff;color:var(--ink);min-height:3.25rem}
+input[aria-invalid=true]{border-color:var(--bad);background:#FFF8F8}
+.err{color:var(--bad);font-weight:700;display:flex;gap:.4rem;margin:.4rem 0 0}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.3rem 0 .6rem}
+.seg label{margin:0;position:relative;font-weight:700}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0}
+.seg span{display:flex;align-items:center;justify-content:center;gap:.4rem;text-align:center;min-height:3.25rem;padding:.4rem .5rem;border:2px solid var(--blue);border-radius:10px;background:#fff;color:var(--blue);line-height:1.2}
+.seg input:checked + span{background:var(--blue);color:#fff}
+.seg input:checked + span::before{content:'✓'}
+.seg input:focus-visible + span{outline:3px solid var(--ink);outline-offset:2px}
+.check{display:flex;gap:.7rem;align-items:flex-start;margin:1rem 0 0;font-weight:400}
+.check input{width:1.7rem;height:1.7rem;flex:none;margin:.1rem 0 0;accent-color:var(--blue)}
+.check b{display:block}
+
+.alert{display:flex;gap:.6rem;padding:.8rem 1rem;border-radius:10px;border:2px solid;margin:0 0 1rem}
+.alert>div{flex:1}
+.alert ul{margin:.3rem 0 0;padding-left:1.1rem}
+.alert.bad{background:var(--bad-bg);border-color:var(--bad);color:#6E0F12}
+.alert.ok{background:var(--ok-bg);border-color:var(--ok);color:#0A4526}
+.alert.warn{background:var(--warn-bg);border-color:var(--warn);color:#4D2F00}
+.alert.info{background:var(--info-bg);border-color:var(--blue);color:var(--ink)}
+.alert:focus{outline:3px solid var(--ink)}
+.alert .btn{margin-top:.6rem;min-height:2.9rem}
+
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(8rem,1fr));gap:.5rem;margin:.3rem 0 .6rem}
+.pick button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;min-height:3.6rem;padding:.4rem;background:#fff;border:2px solid var(--blue);border-radius:10px;color:var(--blue);font:inherit;font-weight:700;cursor:pointer;line-height:1.2}
+.pick button small{font-weight:400;color:var(--muted);font-size:.9rem}
+.pick button[aria-pressed=true]{background:var(--blue);color:#fff}
+.pick button[aria-pressed=true] small{color:#fff}
+.pick button[aria-pressed=true]::before{content:'✓ Elegido';font-size:.85rem}
+.pick button.full{border-style:dashed;border-color:#5B6B7F;color:var(--muted)}
+.pick button.full[aria-pressed=true]{background:#E8EDF3;color:var(--ink);border-style:solid;border-color:var(--ink)}
+.pick button.full[aria-pressed=true] small{color:var(--ink)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.3rem 0 1rem}
+.tabs button{min-height:3rem;border:2px solid var(--blue);border-radius:10px;background:#fff;color:var(--blue);font:inherit;font-weight:700;cursor:pointer;padding:.3rem}
+.tabs button[aria-pressed=true]{background:var(--blue);color:#fff}
+
+.sum{margin:0 0 1rem;background:#fff;border:2px solid var(--line);border-radius:12px}
+.sum div{display:flex;flex-wrap:wrap;gap:.2rem 1rem;padding:.65rem 1rem;border-bottom:1px solid #DDE5ED}
+.sum div:last-child{border-bottom:0}
+.sum dt{color:var(--muted);flex:0 0 6.5rem}
+.sum dd{margin:0;font-weight:700;flex:1}
+
+/* La boleta: el elemento memorable del prototipo */
+.ticket{background:#fff;border:2px solid var(--ink);border-radius:14px;overflow:hidden;margin:0 0 1rem}
+.ticket.fresh{animation:drop .5s ease-out}
+@keyframes drop{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+.t-main{padding:1.1rem 1.1rem 1.2rem;border-left:10px solid var(--blue)}
+.t-inst{margin:0;font-size:.95rem;font-weight:700;color:var(--muted)}
+.t-svc{margin:0 0 .8rem;font-weight:700}
+.t-date{margin:0;font-size:1.55rem;font-weight:700;line-height:1.2}
+.t-time{margin:0 0 .6rem;font-size:2.1rem;font-weight:700;line-height:1.1;color:var(--blue)}
+.t-extra{margin:.2rem 0 0;color:var(--muted);font-size:.95rem}
+.t-perf{position:relative;border-top:3px dashed #7F90A5;height:0}
+.t-perf::before,.t-perf::after{content:'';position:absolute;top:-14px;width:26px;height:26px;border-radius:50%;background:var(--bg);border:2px solid var(--ink)}
+.t-perf::before{left:-15px}
+.t-perf::after{right:-15px}
+.t-stub{background:var(--gold-soft);padding:1rem 1.1rem;display:flex;flex-wrap:wrap;gap:.7rem 1rem;align-items:center;justify-content:space-between}
+.t-code small{display:block;color:var(--muted);font-size:.9rem}
+.t-code strong{font-size:1.5rem;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.badge{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:99px;border:2px solid;font-weight:700;background:#fff}
+.badge.pendiente{color:var(--warn);border-color:var(--warn)}
+.badge.aprobada{color:var(--ok);border-color:var(--ok)}
+.badge.rechazada{color:var(--bad);border-color:var(--bad)}
+
+.tl{list-style:none;margin:0 0 1rem;padding:0}
+.tl li{display:flex;gap:.7rem;align-items:flex-start;padding:.45rem 0}
+.tl b{display:block}
+.tl small{color:var(--muted);font-size:.95rem}
+
+/* Simulación de WhatsApp */
+.phone{background:#ECE5DD;border:2px solid var(--ink);border-radius:16px;overflow:hidden;margin:0 0 .8rem}
+.phone-h{background:#075E54;color:#fff;padding:.7rem 1rem;font-weight:700}
+.phone-h small{display:block;font-weight:400;font-size:.85rem}
+.chat{padding:1rem;min-height:12rem}
+.bubble{background:#DCF8C6;color:#111;border-radius:12px 12px 12px 2px;padding:.7rem .9rem;max-width:92%;box-shadow:0 1px 0 rgba(0,0,0,.15)}
+.bubble p{margin:0}
+.bubble time{display:block;text-align:right;font-size:.8rem;color:#3D4A44;margin-top:.3rem}
+
+.helpwrap{position:sticky;bottom:0;background:#fff;border-top:2px solid var(--line);padding:.6rem 1rem}
+.helpbar{width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem;min-height:3rem;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:10px;font:inherit;font-weight:700;cursor:pointer;line-height:1.2;padding:.3rem .6rem}
+.helpwrap[hidden]{display:none}
+
+.team{width:22rem;max-width:100%;background:#fff;border:2px dashed #5B6B7F;border-radius:12px;padding:.9rem 1rem;font-size:16px}
+.team[hidden]{display:none}
+.team summary{font-weight:700;cursor:pointer}
+.team h3{font-size:1rem;margin:1rem 0 .3rem}
+.team table{border-collapse:collapse;width:100%;font-size:.9rem}
+.team td,.team th{border:1px solid var(--line);padding:.3rem .4rem;text-align:left;vertical-align:top}
+.team .row{display:flex;flex-wrap:wrap;gap:.4rem}
+.team button{font:inherit;font-size:.9rem;padding:.4rem .6rem;border:2px solid var(--blue);border-radius:8px;background:#fff;color:var(--blue);font-weight:700;cursor:pointer}
+.team p{font-size:.9rem;margin:.4rem 0}
+
+/* Mejora 1: estados claros */
+.sbox{display:flex;gap:.8rem;align-items:flex-start;padding:1rem;border:2px solid;border-radius:12px;margin:0 0 1rem}
+.sbox .ic{width:2.2rem;height:2.2rem}
+.sbox strong{display:block;font-size:1.2rem;line-height:1.25;margin-bottom:.4rem}
+.sbox p{margin:0 0 .3rem}
+.sbox.warn{background:var(--warn-bg);border-color:var(--warn);border-style:dashed;color:#4D2F00}
+.sbox.ok{background:var(--ok-bg);border-color:var(--ok);color:#0A4526}
+.sbox.bad{background:var(--bad-bg);border-color:var(--bad);color:#6E0F12}
+.ticket.st-pendiente{border-style:dashed;border-color:var(--warn)}
+.ticket.st-pendiente .t-main{border-left-color:var(--warn)}
+.ticket.st-aprobada{border-color:var(--ok)}
+.ticket.st-aprobada .t-main{border-left-color:var(--ok)}
+.ticket.st-rechazada{border-color:var(--bad)}
+.ticket.st-rechazada .t-main{border-left-color:var(--bad)}
+.t-label{margin:0 0 .15rem;font-size:.95rem;font-weight:700;color:var(--muted)}
+.legend{list-style:none;margin:0 0 1rem;padding:0}
+.legend li{display:flex;gap:.6rem;align-items:flex-start;padding:.4rem 0}
+details.more{background:#fff;border:2px solid var(--line);border-radius:10px;padding:.2rem 1rem;margin:0 0 1rem}
+details.more summary{font-weight:700;cursor:pointer;min-height:2.75rem;display:flex;align-items:center}
+
+/* Mejora 2: código de seguimiento */
+.track{background:var(--gold-soft);border:2px solid var(--ink);border-radius:12px;padding:1rem;margin:0 0 1rem}
+.track h2{margin:0 0 .5rem}
+.track-code{font-size:2rem;font-weight:700;letter-spacing:.06em;text-align:center;margin:.3rem 0 .2rem;background:#fff;border:2px dashed var(--ink);border-radius:10px;padding:.4rem;font-variant-numeric:tabular-nums}
+.copy-msg{font-weight:700;color:var(--ok);min-height:1.5rem;margin:.4rem 0 .6rem;text-align:center}
+.track ol{margin:.2rem 0 .6rem;padding-left:1.3rem}
+.track .btn{margin-top:.4rem}
+
+/* Mejora 3: orientación y ayuda */
+.how{padding-left:1.3rem;margin:0 0 1rem}
+.how li{margin-bottom:.5rem}
+a.btn{text-decoration:none}
+ul.plain{margin:0 0 .8rem;padding-left:1.3rem}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#screen">Saltar al contenido</a>
+
+<div class="layout">
+  <div class="app" id="app">
+    <div class="strip">Prototipo con datos ficticios: no se envía ni se guarda información real.</div>
+    <header class="hdr">
+      <div>
+        <p class="hname">Hospital Escuela</p>
+        <p class="hsub">Citas de Medicina General</p>
+      </div>
+      <button class="ghost" id="bigbtn" aria-pressed="false">Letra grande</button>
+    </header>
+    <main class="screen" id="screen"></main>
+    <div class="helpwrap" id="helpbar">
+      <button class="helpbar" data-act="help"><span id="helpic"></span><span>No puedo usar la aplicación / Necesito ayuda</span></button>
+    </div>
+  </div>
+
+  <aside class="team" id="team">
+    <details>
+      <summary>Panel del equipo (no es parte de la interfaz del paciente)</summary>
+      <h3>Datos ficticios para probar</h3>
+      <table>
+        <tr><th>Paciente A (tiene cita aprobada)</th><td>Identidad 0801-1956-04321<br>Nacimiento 12/05/1956<br>Código de cita HE-MG-30417</td></tr>
+        <tr><th>Paciente B (sin cita)</th><td>Identidad 0501-1978-07766<br>Nacimiento 03/09/1978</td></tr>
+        <tr><th>Paciente C (tiene cita pendiente)</th><td>Identidad 0301-1964-05512<br>Nacimiento 21/08/1964<br>Código de cita HE-MG-30522</td></tr>
+        <tr><th>WhatsApp ficticio</th><td>9999-0000</td></tr>
+      </table>
+      <h3>Simular la respuesta del hospital</h3>
+      <div class="row">
+        <button data-sim="pendiente">Pendiente</button>
+        <button data-sim="aprobada">Aprobada</button>
+        <button data-sim="rechazada">Rechazada</button>
+      </div>
+      <p id="sim-msg" aria-live="polite">Cambia el estado de la cita del paciente que ya se identificó.</p>
+      <h3>Otras opciones</h3>
+      <div class="row"><button id="resetbtn">Reiniciar prototipo</button></div>
+      <p>Para pruebas con usuarios, abre la página con <b>?prueba</b> al final del enlace y este panel desaparece.</p>
+    </details>
+  </aside>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Datos ficticios ---------- */
+const MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DAYS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const DATES=[
+  {iso:'2026-11-30',slots:['7:30 a. m.','9:30 a. m.','10:30 a. m.']},
+  {iso:'2026-12-01',slots:[]},
+  {iso:'2026-12-02',slots:['8:30 a. m.','1:00 p. m.']},
+  {iso:'2026-12-03',slots:['8:30 a. m.','9:30 a. m.','10:30 a. m.','2:00 p. m.']},
+  {iso:'2026-12-04',slots:['8:30 a. m.','10:30 a. m.','1:00 p. m.']},
+  {iso:'2026-12-07',slots:['7:30 a. m.','8:30 a. m.','9:30 a. m.','10:30 a. m.','1:00 p. m.','2:00 p. m.']},
+  {iso:'2026-12-08',slots:['8:30 a. m.','9:30 a. m.']},
+  {iso:'2026-12-09',slots:[]},
+  {iso:'2026-12-10',slots:['7:30 a. m.','10:30 a. m.','2:00 p. m.']},
+  {iso:'2026-12-11',slots:['9:30 a. m.']}
+];
+const PATIENTS={
+  '0801195604321':{name:'María Elena Cruz',first:'María',dob:'12051956',code:'HE-MG-30417'},
+  '0501197807766':{name:'José Luis Mejía',first:'José',dob:'03091978',code:null},
+  '0301196405512':{name:'Carlos Alberto Reyes',first:'Carlos',dob:'21081964',code:'HE-MG-30522'}
+};
+const SEED_CITAS=()=>({
+  '0801195604321':{code:'HE-MG-30417',type:'Solicitud nueva',date:'2026-12-04',time:'8:30 a. m.',status:'aprobada',prev:null},
+  '0501197807766':null,
+  '0301196405512':{code:'HE-MG-30522',type:'Solicitud nueva',date:'2026-12-08',time:'9:30 a. m.',status:'pendiente',prev:null}
+});
+const HELP_PHONE='2200-0000';
+
+/* ---------- Utilidades ---------- */
+const dt=iso=>{const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d,12)};
+const longD=x=>`${DAYS[x.getDay()]} ${x.getDate()} de ${MONTHS[x.getMonth()]}`;
+const long=iso=>longD(dt(iso));
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const shortD=iso=>{const x=dt(iso);return `${DAYS[x.getDay()].slice(0,3)} ${x.getDate()} ${MONTHS[x.getMonth()].slice(0,3)}`};
+const tm=t=>t.replace(/ /g,'\u00a0');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mask=d=>d.slice(0,4)+'-••••-••'+d.slice(10);
+const svg=p=>`<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${p}</svg>`;
+const I={
+  back:svg('<path d="M15 18l-6-6 6-6"/>'),
+  next:svg('<path d="M9 6l6 6-6 6"/>'),
+  help:svg('<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5"/><path d="M12 18h.01"/>'),
+  clock:svg('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'),
+  ok:svg('<circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/>'),
+  no:svg('<circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/>'),
+  alert:svg('<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18h.01"/>'),
+  info:svg('<circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5h.01"/>'),
+  cal:svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  plus:svg('<circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>'),
+  dot:svg('<circle cx="12" cy="12" r="9"/>'),
+  phone:svg('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>')
+};
+document.getElementById('helpic').innerHTML=I.help;
+
+/* ---------- Estado ---------- */
+let S;
+function reset(){
+  const big=S?S.big:false;
+  S={screen:'home',stack:[],mode:null,patient:null,replacing:false,
+     idForm:{id:'',kind:'dob',second:''},errors:{},mismatch:false,
+     week:0,date:null,time:null,phone:'',consent:false,
+     citas:SEED_CITAS(),justSent:false,notifTab:'confirm',codeSeq:48214,big};
+}
+const cur=()=>S.patient?S.citas[S.patient]:null;
+const STATUS={
+  pendiente:{label:'Pendiente',icon:I.clock,cls:'warn',
+    title:'Solicitud pendiente: todavía no es una cita confirmada',
+    mean:'El hospital aún está revisando tu solicitud y no ha reservado tu horario.',
+    todo:'No vayas al hospital todavía. Espera el aviso por WhatsApp o vuelve a revisar con tu código.'},
+  aprobada:{label:'Aprobada',icon:I.ok,cls:'ok',
+    title:'Cita aprobada: tu horario está reservado',
+    mean:'El hospital confirmó tu cita.',
+    todo:'Llega 30 minutos antes y lleva tu identidad.'},
+  rechazada:{label:'Rechazada',icon:I.no,cls:'bad',
+    title:'Solicitud rechazada: no hay cupo en ese horario',
+    mean:'El hospital no pudo reservar ese horario.',
+    todo:'Elige otro horario. No necesitas empezar de nuevo.'}
+};
+const legend=()=>`<ul class="legend">${Object.values(STATUS).map(x=>`<li>${x.icon}<span><b>${x.label}:</b> ${x.mean} ${x.todo}</span></li>`).join('')}</ul>`;
+const STEP_HELP={
+  home:{t:'Empezar',b:'Elige "Pedir una cita nueva" si no tienes cita. Elige "Revisar o cambiar mi cita" si ya pediste una y quieres ver su estado o cambiarla.'},
+  id:{t:'Confirmar quién eres',b:'Escribe los 13 números de tu identidad. Como segundo dato usa tu fecha de nacimiento. Si tienes el código de una cita anterior, también sirve.'},
+  decision:{t:'Ya tienes una cita',b:'Si solo quieres cambiar el día u hora, elige "Reprogramar esta cita". Pide otra cita nueva solo si necesitas una consulta adicional.'},
+  nocita:{t:'Sin cita activa',b:'No encontramos una cita pendiente ni aprobada. Puedes pedir una nueva o llamar al hospital si crees que es un error.'},
+  slots:{t:'Elegir día y horario',b:'Toca un día. Abajo aparecen sus horarios. Toca uno y luego "Continuar". Los días con "Sin cupos" no tienen horarios.'},
+  review:{t:'Revisar y enviar',b:'Revisa la fecha y la hora. Escribe el número de WhatsApp donde quieres recibir avisos, marca la casilla y toca "Enviar solicitud".'},
+  ticket:{t:'Tu solicitud',b:'Pendiente significa que el hospital la está revisando. Aprobada significa que tu cita está confirmada. Guarda tu código para revisar el estado después.'},
+  notif:{t:'Aviso de ejemplo',b:'Así llegaría el aviso a tu WhatsApp. En esta versión de prueba no se envía ningún mensaje real.'}
+};
+
+/* ---------- Componentes ---------- */
+const backBtn=()=>S.stack.length?`<button class="back" data-act="back">${I.back}Volver</button>`:'';
+function progress(n,label){
+  return `<div class="prog"><p>Paso ${n} de 4: ${label}</p><div class="bar" aria-hidden="true">${[1,2,3,4].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</div></div>`;
+}
+const alertBox=(cls,icon,body,id)=>`<div class="alert ${cls}" ${id?`id="${id}" tabindex="-1" role="alert"`:''}>${icon}<div>${body}</div></div>`;
+const fieldErr=(id,msg)=>msg?`<p class="err" id="${id}">${I.alert}<span>${esc(msg)}</span></p>`:'';
+
+/* ---------- Pantallas ---------- */
+const SCREENS={
+
+home(){
+  return `
+  <h1 id="h1" tabindex="-1">¿Qué quieres hacer?</h1>
+  <p class="lead">Pide o cambia tu cita de Consulta Externa de Medicina General sin ir al hospital.</p>
+  <button class="option" data-act="start" data-mode="new">${I.plus}<span><strong>Pedir una cita nueva</strong><small>Mira los horarios con cupo y elige uno</small></span>${I.next}</button>
+  <button class="option" data-act="start" data-mode="reprogram">${I.cal}<span><strong>Revisar o cambiar mi cita</strong><small>Consulta el estado o elige otro horario</small></span>${I.next}</button>
+  <p class="note">${I.info}<span>Vas a necesitar tu número de identidad y tu fecha de nacimiento.</span></p>
+  <button class="btn quiet" data-act="howto">¿Primera vez? Mira cómo funciona</button>`;
+},
+
+id(){
+  const f=S.idForm,e=S.errors;
+  const items=[];
+  if(e.id)items.push('número de identidad');
+  if(e.second)items.push(f.kind==='dob'?'fecha de nacimiento':'código de cita');
+  let top='';
+  if(S.mismatch){
+    top=alertBox('bad',I.alert,`<strong>Los datos no coinciden.</strong> Revisa tu número de identidad o ${f.kind==='dob'?'tu fecha de nacimiento':'el código de tu cita'} e inténtalo de nuevo.
+      <button class="btn secondary" type="button" data-act="retry">Intentar de nuevo</button>
+      <button class="btn secondary" type="button" data-act="help">Pedir ayuda</button>`,'err-summary');
+  }else if(items.length){
+    top=alertBox('bad',I.alert,`<strong>Falta completar o corregir:</strong> ${items.join(' y ')}.`,'err-summary');
+  }
+  const isDob=f.kind==='dob';
+  return `
+  ${backBtn()}
+  ${progress(1,'Confirmar quién eres')}
+  <h1 id="h1" tabindex="-1">Confirma quién eres</h1>
+  <p>Usamos dos datos para proteger tu información.</p>
+  ${top}
+  <form data-form="id" novalidate>
+    <label for="f-id">Número de identidad</label>
+    <p class="hint" id="id-hint">13 números. Ejemplo: 0801-1975-12345</p>
+    <input id="f-id" type="text" inputmode="numeric" autocomplete="off" maxlength="15" value="${esc(f.id)}" aria-describedby="id-hint${e.id?' id-err':''}" ${e.id?'aria-invalid="true"':''}>
+    ${fieldErr('id-err',e.id)}
+
+    <fieldset>
+      <legend class="lbl">Segundo dato para verificar</legend>
+      <div class="seg">
+        <label><input type="radio" name="kind" value="dob" ${isDob?'checked':''}><span>Fecha de nacimiento</span></label>
+        <label><input type="radio" name="kind" value="code" ${!isDob?'checked':''}><span>Código de una cita anterior</span></label>
+      </div>
+    </fieldset>
+    <label for="f-second" class="sr-only" style="margin-top:.2rem">${isDob?'Fecha de nacimiento':'Código de la cita anterior'}</label>
+    <p class="hint" id="second-hint">${isDob?'Día, mes y año. Ejemplo: 25/03/1958':'Lo encuentras en tu boleta o en el aviso de WhatsApp. Ejemplo: HE-MG-12345'}</p>
+    <input id="f-second" type="text" inputmode="${isDob?'numeric':'text'}" autocomplete="off" maxlength="${isDob?10:12}" value="${esc(f.second)}" aria-describedby="second-hint${e.second?' second-err':''}" ${e.second?'aria-invalid="true"':''}>
+    ${fieldErr('second-err',e.second)}
+
+    <button class="btn primary" type="submit">Continuar</button>
+  </form>`;
+},
+
+decision(){
+  const c=cur(),p=PATIENTS[S.patient];
+  return `
+  ${backBtn()}
+  ${progress(1,'Confirmar quién eres')}
+  <h1 id="h1" tabindex="-1">Hola, ${esc(p.first)}. Ya tienes una cita</h1>
+  <p>Antes de pedir otra, mira si solo necesitas cambiar la que ya tienes.</p>
+  <dl class="sum">
+    <div><dt>Fecha</dt><dd>${esc(cap(long(c.date)))}</dd></div>
+    <div><dt>Hora</dt><dd>${tm(c.time)}</dd></div>
+    <div><dt>Estado</dt><dd>${STATUS[c.status].label}</dd></div>
+  </dl>
+  <button class="btn primary" data-act="reprogram">Reprogramar esta cita</button>
+  <button class="btn secondary" data-act="extra">Pedir otra cita nueva</button>`;
+},
+
+nocita(){
+  const p=PATIENTS[S.patient];
+  return `
+  ${backBtn()}
+  <h1 id="h1" tabindex="-1">No encontramos una cita activa</h1>
+  <p>${esc(p.first)}, no hay una cita pendiente ni aprobada a tu nombre. Si acabas de pedirla, puede tardar en aparecer.</p>
+  <button class="btn primary" data-act="extra">Pedir una cita nueva</button>
+  <button class="btn quiet" data-act="home">Volver al inicio</button>`;
+},
+
+slots(){
+  const c=cur(),e=S.errors;
+  const weeks=[DATES.slice(0,5),DATES.slice(5)];
+  const days=weeks[S.week];
+  const avail=d=>d.slots.filter(t=>!(c&&c.date===d.iso&&c.time===t));
+  const wl=w=>{const a=dt(w[0].iso),b=dt(w[w.length-1].iso);return `Del ${a.getDate()} ${MONTHS[a.getMonth()].slice(0,3)} al ${b.getDate()} ${MONTHS[b.getMonth()].slice(0,3)}`};
+  const sel=S.date?DATES.find(d=>d.iso===S.date):null;
+  let panel='';
+  if(!sel){
+    panel=`<p class="hint">Elige un día para ver sus horarios.</p>`;
+  }else{
+    const a=avail(sel);
+    if(!a.length){
+      panel=alertBox('warn',I.info,`<strong>Por ahora no hay horarios disponibles para el ${esc(long(sel.iso))}.</strong> Elige otro día, revisa más tarde o llama al ${HELP_PHONE}.`);
+    }else{
+      panel=`<h2 id="slot-h">Horarios del ${esc(long(sel.iso))}</h2>
+      <div class="pick" role="group" aria-labelledby="slot-h">${a.map(t=>`<button type="button" data-act="pickTime" data-time="${esc(t)}" aria-pressed="${S.time===t}">${tm(t)}</button>`).join('')}</div>`;
+    }
+  }
+  const err=e.slot?alertBox('bad',I.alert,esc(e.slot),'err-summary'):'';
+  return `
+  ${backBtn()}
+  ${progress(2,'Elegir horario')}
+  <h1 id="h1" tabindex="-1">Elige día y horario</h1>
+  <p>${S.replacing&&c?'Vas a cambiar tu cita actual: '+esc(long(c.date))+', '+tm(c.time):'Consulta Externa, Medicina General.'}</p>
+  <div class="tabs" role="group" aria-label="Semana">
+    ${weeks.map((w,i)=>`<button type="button" data-act="week" data-week="${i}" aria-pressed="${S.week===i}">${wl(w)}</button>`).join('')}
+  </div>
+  <div class="pick" role="group" aria-label="Días">
+    ${days.map(d=>{const n=avail(d).length;return `<button type="button" data-act="pickDay" data-date="${d.iso}" class="${n?'':'full'}" aria-pressed="${S.date===d.iso}">${esc(shortD(d.iso))}<small>${n?n+(n===1?' cupo':' cupos'):'Sin cupos'}</small></button>`}).join('')}
+  </div>
+  <div id="slotpanel" aria-live="polite">${panel}</div>
+  ${err}
+  <button class="btn primary" data-act="toReview">Continuar</button>`;
+},
+
+review(){
+  const c=cur(),p=PATIENTS[S.patient],e=S.errors;
+  const items=[];
+  if(e.phone)items.push('número de WhatsApp');
+  if(e.consent)items.push('autorización de avisos');
+  const top=items.length?alertBox('bad',I.alert,`<strong>Falta completar:</strong> ${items.join(' y ')}.`,'err-summary'):'';
+  const tipo=S.replacing&&c?`Reprogramación (antes: ${esc(shortD(c.date))}, ${tm(c.time)})`:'Cita nueva';
+  return `
+  ${backBtn()}
+  ${progress(3,'Revisar y enviar')}
+  <h1 id="h1" tabindex="-1">Revisa tu solicitud</h1>
+  <p>Si todo está bien, envíala. El hospital te responderá por WhatsApp.</p>
+  ${top}
+  <dl class="sum">
+    <div><dt>Hospital</dt><dd>Hospital Escuela</dd></div>
+    <div><dt>Servicio</dt><dd>Consulta Externa, Medicina General</dd></div>
+    <div><dt>Fecha</dt><dd>${esc(cap(long(S.date)))}</dd></div>
+    <div><dt>Hora</dt><dd>${tm(S.time)}</dd></div>
+    <div><dt>Paciente</dt><dd>${esc(p.name)}<br><span style="font-weight:400">Identidad ${mask(S.patient)}</span></dd></div>
+    <div><dt>Tipo</dt><dd>${tipo}</dd></div>
+  </dl>
+  <form data-form="review" novalidate>
+    <label for="f-phone">Número de WhatsApp para los avisos</label>
+    <p class="hint" id="phone-hint">8 números. Ejemplo: 9999-9999</p>
+    <input id="f-phone" type="tel" inputmode="numeric" autocomplete="off" maxlength="9" value="${esc(S.phone)}" aria-describedby="phone-hint${e.phone?' phone-err':''}" ${e.phone?'aria-invalid="true"':''}>
+    ${fieldErr('phone-err',e.phone)}
+    <label class="check" for="f-consent"><input id="f-consent" type="checkbox" ${S.consent?'checked':''} ${e.consent?'aria-invalid="true" aria-describedby="consent-err"':''}><span><b>Acepto recibir avisos de mi solicitud por WhatsApp.</b>Los mensajes solo dicen fecha, hora y estado. Nunca incluyen datos médicos.</span></label>
+    ${fieldErr('consent-err',e.consent)}
+    <button class="btn primary" type="submit">Enviar solicitud</button>
+    <button class="btn secondary" type="button" data-act="back">Cambiar horario</button>
+  </form>`;
+},
+
+ticket(){
+  const c=cur(),p=PATIENTS[S.patient],st=STATUS[c.status];
+  const done=c.status!=='pendiente';
+  const tl=[
+    {t:'Solicitud enviada',s:'Hecho',i:I.ok},
+    {t:'Revisión del hospital',s:done?'Hecho':'En curso',i:done?I.ok:I.clock},
+    {t:'Respuesta',s:done?st.label:'Falta',i:done?(c.status==='aprobada'?I.ok:I.no):I.dot}
+  ];
+  const label={pendiente:'Horario solicitado, aún sin confirmar',aprobada:'Fecha y hora de tu cita',rechazada:'Horario que no fue aprobado'}[c.status];
+  const h1=S.justSent?'Solicitud enviada':(c.status==='aprobada'?'Tu cita':'Tu solicitud');
+  const sent=S.justSent?alertBox('ok',I.ok,'Tu solicitud llegó al hospital. Guarda tu código de seguimiento.'):'';
+  let actions='';
+  if(S.justSent){
+    actions=`<button class="btn primary" data-act="notif">Ver el aviso que recibirás por WhatsApp</button>
+             <button class="btn secondary" data-act="home">Volver al inicio</button>`;
+  }else if(c.status==='rechazada'){
+    actions=`<button class="btn primary" data-act="reprogram">Elegir otro horario</button>
+             <button class="btn secondary" data-act="notif">Ver aviso de ejemplo en WhatsApp</button>
+             <button class="btn quiet" data-act="home">Volver al inicio</button>`;
+  }else{
+    actions=`<button class="btn primary" data-act="reprogram">Reprogramar esta cita</button>
+             <button class="btn secondary" data-act="notif">Ver aviso de ejemplo en WhatsApp</button>
+             <button class="btn quiet" data-act="home">Volver al inicio</button>`;
+  }
+  return `
+  ${S.justSent?progress(4,'Listo'):''}
+  <h1 id="h1" tabindex="-1">${h1}</h1>
+  ${sent}
+  <section class="sbox ${st.cls}" aria-labelledby="sbox-t">${st.icon}<div><strong id="sbox-t">${st.title}</strong><p><b>Qué significa:</b> ${st.mean}</p><p><b>Qué debes hacer:</b> ${st.todo}</p></div></section>
+  <article class="ticket st-${c.status} ${S.justSent?'fresh':''}" aria-label="Boleta de la solicitud">
+    <div class="t-main">
+      <p class="t-inst">Hospital Escuela</p>
+      <p class="t-svc">Consulta Externa, Medicina General</p>
+      <p class="t-label">${label}</p>
+      <p class="t-date">${esc(cap(long(c.date)))}</p>
+      <p class="t-time">${tm(c.time)}</p>
+      <p class="t-extra">${esc(p.name)}. ${esc(c.type)}.</p>
+      ${c.prev?`<p class="t-extra">Antes: ${esc(shortD(c.prev.date))}, ${tm(c.prev.time)}.</p>`:''}
+    </div>
+    <div class="t-perf" aria-hidden="true"></div>
+    <div class="t-stub">
+      <div class="t-code"><small>Código de solicitud</small><strong>${esc(c.code)}</strong></div>
+      <span class="badge ${c.status}">${st.icon}<span>Estado: ${st.label}</span></span>
+    </div>
+  </article>
+  <section class="track" aria-labelledby="track-h">
+    <h2 id="track-h">Tu código de seguimiento</h2>
+    <p class="track-code">${esc(c.code)}</p>
+    <button class="btn secondary" type="button" data-act="copy">Copiar código</button>
+    <p class="copy-msg" id="copy-msg" aria-live="polite"></p>
+    <p><b>Para qué sirve:</b> con este código revisas el estado de tu solicitud cuando quieras, sin ir al hospital. Anótalo o toma una captura de pantalla.</p>
+    <p><b>Cómo revisar después:</b></p>
+    <ol>
+      <li>En el inicio, elige "Revisar o cambiar mi cita".</li>
+      <li>Escribe tu número de identidad.</li>
+      <li>Elige "Código de una cita anterior" y escribe este código.</li>
+    </ol>
+  </section>
+  <ol class="tl" aria-label="Avance de la solicitud">
+    ${tl.map(x=>`<li>${x.i}<div><b>${x.t}</b><small>${x.s}</small></div></li>`).join('')}
+  </ol>
+  <details class="more"><summary>¿Qué significa cada estado?</summary>${legend()}</details>
+  ${actions}`;
+},
+
+notif(){
+  const c=cur(),tab=S.notifTab;
+  const x=dt(c.date);x.setDate(x.getDate()+(x.getDay()===1?1:-1));
+  const msgs={
+    confirm:c.status==='aprobada'
+      ?`Hospital Escuela: tu cita quedó confirmada para el ${long(c.date)} a las ${c.time} Llega 30 minutos antes y lleva tu identidad.`
+      :c.status==='rechazada'
+        ?`Hospital Escuela: no pudimos aprobar tu solicitud ${c.code}. Entra al portal para elegir otro horario.`
+        :`Hospital Escuela: recibimos tu solicitud ${c.code}. Te avisaremos por este medio cuando tenga respuesta.`,
+    change:`Hospital Escuela: tu cita ${c.code} cambió de horario. Nuevo horario: ${longD(x)} a las ${c.time} Entra al portal para aceptarlo o elegir otro.`,
+    state:`Hospital Escuela: tu solicitud ${c.code} ahora está en estado ${STATUS[c.status].label.toLowerCase()}. Entra al portal para ver los detalles.`
+  };
+  const tabs=[['confirm','Confirmación'],['change','Cambio de horario'],['state','Estado']];
+  return `
+  ${backBtn()}
+  <h1 id="h1" tabindex="-1">Aviso de ejemplo</h1>
+  <p>Así recibirías el mensaje. Elige el tipo de aviso que quieres ver.</p>
+  <div class="tabs" style="grid-template-columns:repeat(3,1fr)" role="group" aria-label="Tipo de aviso">
+    ${tabs.map(([k,l])=>`<button type="button" data-act="ntab" data-tab="${k}" aria-pressed="${tab===k}">${l}</button>`).join('')}
+  </div>
+  <div class="phone">
+    <div class="phone-h">Hospital Escuela<small>Simulación de WhatsApp</small></div>
+    <div class="chat" aria-live="polite"><div class="bubble"><p>${esc(msgs[tab])}</p><time>9:41 a. m.</time></div></div>
+  </div>
+  ${alertBox('info',I.info,'No se envió ningún mensaje real. Los avisos no incluyen diagnósticos ni datos médicos.')}
+  <button class="btn primary" data-act="back">Volver a mi cita</button>`;
+},
+
+help(){
+  const prev=S.stack[S.stack.length-1],sh=STEP_HELP[prev];
+  const ctx=sh?alertBox('info',I.info,`<strong>Ayuda para este paso: ${sh.t}</strong><br>${sh.b}`):'';
+  return `
+  ${backBtn()}
+  <h1 id="h1" tabindex="-1">Ayuda</h1>
+  ${ctx}
+  <h2>Cómo usar la aplicación</h2>
+  <ol class="how">
+    <li><b>Elige qué quieres hacer.</b> Pedir una cita nueva o revisar y cambiar la que ya tienes.</li>
+    <li><b>Confirma quién eres.</b> Con tu identidad y tu fecha de nacimiento.</li>
+    <li><b>Elige día y horario.</b> Toca un día, luego un horario, y envía la solicitud.</li>
+    <li><b>Guarda tu código.</b> Con él revisas el estado cuando quieras. Te avisaremos por WhatsApp.</li>
+  </ol>
+  <h2>Qué significa cada estado</h2>
+  ${legend()}
+  <h2>Si no puedes usar la aplicación</h2>
+  <p>Puedes hacer el trámite de otra forma.</p>
+  <a class="btn primary" href="tel:22000000">${I.phone}<span>Llamar al ${HELP_PHONE}</span></a>
+  <p style="margin-top:.6rem">Lunes a viernes, de 7:00 a. m. a 3:00 p. m. Ten a mano tu número de identidad.</p>
+  <p><b>En persona:</b> ve a la ventanilla de citas de Consulta Externa del Hospital Escuela. Lleva:</p>
+  <ul class="plain"><li>Tu identidad.</li><li>Tu boleta o el código de tu cita, si lo tienes.</li></ul>
+  <p><b>Con un familiar:</b> una persona de confianza puede hacer el trámite o llamar por ti. Necesitará tus datos de identificación.</p>
+  ${alertBox('info',I.info,'Los números y horarios de esta pantalla son ficticios, solo para el prototipo.')}
+  <button class="btn primary" data-act="back">Volver a lo que estaba haciendo</button>`;
+}
+};
+
+/* ---------- Render y navegación ---------- */
+const TITLES={home:'Inicio',id:'Confirmar identidad',decision:'Ya tienes una cita',nocita:'Sin cita activa',slots:'Elegir horario',review:'Revisar solicitud',ticket:'Tu cita',notif:'Aviso de ejemplo',help:'Ayuda'};
+function render(focusSel){
+  const root=document.getElementById('screen');
+  root.innerHTML=SCREENS[S.screen]();
+  document.getElementById('helpbar').hidden=(S.screen==='help');
+  document.title=TITLES[S.screen]+' · Hospital Escuela (prototipo)';
+  let t=focusSel?root.querySelector(focusSel):null;
+  if(!t&&!focusSel)t=root.querySelector('#h1');
+  if(t){t.focus();}
+  if(!focusSel)window.scrollTo(0,0);
+}
+function go(s){S.stack.push(S.screen);S.screen=s;S.errors={};render();}
+function back(){S.screen=S.stack.pop()||'home';S.errors={};render();}
+function home(){
+  S.stack=[];S.screen='home';S.justSent=false;S.date=null;S.time=null;S.week=0;S.phone='';S.consent=false;S.errors={};S.mismatch=false;S.replacing=false;render();
+}
+function startSlots(replacing){S.replacing=replacing;S.date=null;S.time=null;S.week=0;S.errors={};go('slots');}
+
+function submitId(){
+  const f=S.idForm,e={};
+  const d=f.id.replace(/\D/g,''),sec=f.second.trim();
+  S.mismatch=false;
+  if(d.length!==13)e.id='Escribe los 13 números de tu identidad. Ejemplo: 0801-1975-12345.';
+  if(!sec)e.second=f.kind==='dob'?'Escribe tu fecha de nacimiento con día, mes y año. Ejemplo: 25/03/1958.':'Escribe el código de tu cita anterior. Ejemplo: HE-MG-12345.';
+  else if(f.kind==='dob'&&sec.replace(/\D/g,'').length!==8)e.second='La fecha debe tener día, mes y año. Ejemplo: 25/03/1958.';
+  if(Object.keys(e).length){S.errors=e;render('#err-summary');return;}
+  const p=PATIENTS[d];
+  const ok=p&&(f.kind==='dob'?sec.replace(/\D/g,'')===p.dob:(p.code&&sec.replace(/[^A-Z0-9]/gi,'').toUpperCase()===p.code.replace(/-/g,'')));
+  if(!ok){S.errors={};S.mismatch=true;render('#err-summary');return;}
+  S.patient=d;S.errors={};S.mismatch=false;
+  const c=cur();
+  if(S.mode==='reprogram'){S.justSent=false;c?go('ticket'):go('nocita');}
+  else{c?go('decision'):startSlots(false);}
+}
+function toReview(){
+  const e={};
+  if(!S.date)e.slot='Elige un día con cupos.';
+  else if(!S.time)e.slot='Elige un horario para ese día.';
+  if(e.slot){S.errors=e;render('#err-summary');return;}
+  go('review');
+}
+function submitReview(){
+  const e={},d=S.phone.replace(/\D/g,'');
+  if(d.length!==8)e.phone=d.length?'El número debe tener 8 números. Ejemplo: 9999-9999.':'Escribe el número de WhatsApp donde quieres recibir los avisos.';
+  if(!S.consent)e.consent='Marca la casilla para recibir avisos de tu solicitud.';
+  if(Object.keys(e).length){S.errors=e;render('#err-summary');return;}
+  const c=cur(),re=S.replacing&&c;
+  S.codeSeq++;
+  S.citas[S.patient]={code:'HE-MG-'+S.codeSeq,type:re?'Reprogramación':'Solicitud nueva',date:S.date,time:S.time,status:'pendiente',prev:re?{date:c.date,time:c.time}:null};
+  S.justSent=true;S.errors={};S.stack=[];S.screen='ticket';S.notifTab='confirm';render();
+}
+
+function copyCode(){
+  const c=cur(),msg=document.getElementById('copy-msg');
+  const ok=()=>{msg.textContent='Código copiado: '+c.code;};
+  const fail=()=>{msg.textContent='No se pudo copiar. Anota el código: '+c.code;};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(c.code).then(ok,fail);}
+  else{try{const t=document.createElement('textarea');t.value=c.code;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const r=document.execCommand('copy');document.body.removeChild(t);r?ok():fail();}catch(e){fail();}}
+}
+/* ---------- Eventos ---------- */
+document.getElementById('app').addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');
+  if(!b)return;
+  const a=b.dataset.act;
+  switch(a){
+    case 'start':
+      S.mode=b.dataset.mode;S.idForm={id:'',kind:'dob',second:''};S.mismatch=false;go('id');break;
+    case 'retry':S.mismatch=false;render('#f-id');break;
+    case 'help':go('help');break;
+    case 'howto':go('help');break;
+    case 'copy':copyCode();break;
+    case 'back':back();break;
+    case 'home':home();break;
+    case 'reprogram':S.justSent=false;startSlots(true);break;
+    case 'extra':startSlots(false);break;
+    case 'week':S.week=+b.dataset.week;S.date=null;S.time=null;S.errors={};render('[data-act=week][data-week="'+S.week+'"]');break;
+    case 'pickDay':S.date=b.dataset.date;S.time=null;S.errors={};render('[data-act=pickDay][data-date="'+S.date+'"]');break;
+    case 'pickTime':S.time=b.dataset.time;S.errors={};
+      render('[data-act=pickTime][aria-pressed=true]');break;
+    case 'toReview':toReview();break;
+    case 'notif':S.notifTab='confirm';go('notif');break;
+    case 'ntab':S.notifTab=b.dataset.tab;render('[data-act=ntab][data-tab="'+S.notifTab+'"]');break;
+  }
+});
+document.addEventListener('submit',e=>{
+  const f=e.target.closest('[data-form]');
+  if(!f)return;
+  e.preventDefault();
+  if(f.dataset.form==='id')submitId();else submitReview();
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='f-id'){
+    const d=t.value.replace(/\D/g,'').slice(0,13);
+    t.value=S.idForm.id=[d.slice(0,4),d.slice(4,8),d.slice(8)].filter(Boolean).join('-');
+  }else if(t.id==='f-second'){
+    if(S.idForm.kind==='dob'){
+      const d=t.value.replace(/\D/g,'').slice(0,8);
+      t.value=S.idForm.second=[d.slice(0,2),d.slice(2,4),d.slice(4)].filter(Boolean).join('/');
+    }else{t.value=S.idForm.second=t.value.toUpperCase();}
+  }else if(t.id==='f-phone'){
+    const d=t.value.replace(/\D/g,'').slice(0,8);
+    t.value=S.phone=d.length>4?d.slice(0,4)+'-'+d.slice(4):d;
+  }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.name==='kind'){S.idForm.kind=t.value;S.idForm.second='';S.errors={};S.mismatch=false;render('input[name=kind]:checked');}
+  else if(t.id==='f-consent'){S.consent=t.checked;}
+});
+
+/* Letra grande */
+const bigbtn=document.getElementById('bigbtn');
+bigbtn.addEventListener('click',()=>{
+  S.big=!S.big;
+  document.documentElement.classList.toggle('big',S.big);
+  bigbtn.setAttribute('aria-pressed',String(S.big));
+  bigbtn.textContent=S.big?'Letra normal':'Letra grande';
+});
+
+/* Panel del equipo */
+document.getElementById('team').addEventListener('click',e=>{
+  const b=e.target.closest('button');
+  if(!b)return;
+  const msg=document.getElementById('sim-msg');
+  if(b.dataset.sim){
+    const c=cur();
+    if(!c){msg.textContent='Primero identifica a un paciente que tenga una cita o envía una solicitud.';return;}
+    c.status=b.dataset.sim;
+    msg.textContent='Estado cambiado a: '+STATUS[c.status].label+'.';
+    if(S.screen==='ticket'||S.screen==='notif')render('#h1');
+  }else if(b.id==='resetbtn'){
+    reset();render();msg.textContent='Prototipo reiniciado.';
+  }
+});
+if(/prueba/.test(location.search))document.getElementById('team').hidden=true;
+
+reset();render();
+})();
+</script>
+</body>
+</html>
