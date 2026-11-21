@@ -193,6 +193,7 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
       <table>
         <tr><th>Paciente A (tiene cita aprobada)</th><td>Identidad 0801-1956-04321<br>Nacimiento 12/05/1956<br>Código de cita HE-MG-30417</td></tr>
         <tr><th>Paciente B (sin cita)</th><td>Identidad 0501-1978-07766<br>Nacimiento 03/09/1978</td></tr>
+        <tr><th>Paciente C (tiene cita pendiente)</th><td>Identidad 0301-1964-05512<br>Nacimiento 21/08/1964<br>Código de cita HE-MG-30522</td></tr>
         <tr><th>WhatsApp ficticio</th><td>9999-0000</td></tr>
       </table>
       <h3>Simular la respuesta del hospital</h3>
@@ -230,11 +231,13 @@ const DATES=[
 ];
 const PATIENTS={
   '0801195604321':{name:'María Elena Cruz',first:'María',dob:'12051956',code:'HE-MG-30417'},
-  '0501197807766':{name:'José Luis Mejía',first:'José',dob:'03091978',code:null}
+  '0501197807766':{name:'José Luis Mejía',first:'José',dob:'03091978',code:null},
+  '0301196405512':{name:'Carlos Alberto Reyes',first:'Carlos',dob:'21081964',code:'HE-MG-30522'}
 };
 const SEED_CITAS=()=>({
   '0801195604321':{code:'HE-MG-30417',type:'Solicitud nueva',date:'2026-12-04',time:'8:30 a. m.',status:'aprobada',prev:null},
-  '0501197807766':null
+  '0501197807766':null,
+  '0301196405512':{code:'HE-MG-30522',type:'Solicitud nueva',date:'2026-12-08',time:'9:30 a. m.',status:'pendiente',prev:null}
 });
 const HELP_PHONE='2200-0000';
 
